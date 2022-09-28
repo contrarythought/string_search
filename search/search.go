@@ -12,11 +12,6 @@ import (
 	"sync"
 )
 
-const (
-	NUM_WORKERS = 10
-	ROOT        = "C:"
-)
-
 type FileHits struct {
 	Files []string
 	mu    sync.Mutex
@@ -36,7 +31,7 @@ func SearchDocx(file string, str string) (bool, error) {
 	return false, nil
 }
 
-// return file path that is to be appended to a []string
+// return file path that is to be appended FileHits
 func SearchTxt(file string, str string) (bool, error) {
 	f, err := os.Open(file)
 	if err != nil {
@@ -55,8 +50,13 @@ func SearchTxt(file string, str string) (bool, error) {
 	return false, nil
 }
 
-func Run(str string) *FileHits {
-	dirEntries, err := os.ReadDir(ROOT)
+func Run(Args []string) *FileHits {
+
+	startingDir := Args[1]
+	searchStr := Args[2]
+
+	// need to do checking to see if startingDir ends with a '\'
+	dirEntries, err := os.ReadDir(startingDir + "\\")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -70,16 +70,16 @@ func Run(str string) *FileHits {
 	// string user is searching for
 	for _, entry := range dirEntries {
 
-		currPath := ROOT + "\\" + entry.Name()
+		currPath := startingDir + "\\" + entry.Name()
 
 		if entry.IsDir() {
 
 			wg.Add(1)
-			go SearchDir(currPath, str, filePaths, &wg)
+			go SearchDir(currPath, searchStr, filePaths, &wg)
 
 		} else if strings.Compare(filepath.Ext(currPath), ".docx") == 0 {
 
-			if b, err := SearchDocx(ROOT+"\\"+entry.Name(), str); b && err == nil {
+			if ok, err := SearchDocx(startingDir+"\\"+entry.Name(), searchStr); ok && err == nil {
 
 				filePaths.mu.Lock()
 				filePaths.Files = append(filePaths.Files, currPath)
@@ -92,7 +92,7 @@ func Run(str string) *FileHits {
 			}
 		} else if strings.Compare(filepath.Ext(currPath), ".txt") == 0 {
 
-			if b, err := SearchTxt(ROOT+"\\"+entry.Name(), str); b && err == nil {
+			if ok, err := SearchTxt(startingDir+"\\"+entry.Name(), searchStr); ok && err == nil {
 
 				filePaths.mu.Lock()
 				filePaths.Files = append(filePaths.Files, currPath)
@@ -115,6 +115,7 @@ func Run(str string) *FileHits {
 func SearchDir(dir string, str string, files *FileHits, wg *sync.WaitGroup) {
 
 	defer wg.Done()
+
 	filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 
 		if strings.Compare(filepath.Ext(d.Name()), ".docx") == 0 && !d.IsDir() {
@@ -124,10 +125,6 @@ func SearchDir(dir string, str string, files *FileHits, wg *sync.WaitGroup) {
 				files.mu.Lock()
 				files.Files = append(files.Files, path)
 				files.mu.Unlock()
-
-			} else {
-
-				fmt.Fprintln(os.Stderr, err)
 
 			}
 
@@ -139,14 +136,11 @@ func SearchDir(dir string, str string, files *FileHits, wg *sync.WaitGroup) {
 				files.Files = append(files.Files, path)
 				files.mu.Unlock()
 
-			} else {
-
-				fmt.Fprintln(os.Stderr, err)
-
 			}
 
 		}
 
 		return nil
 	})
+
 }
