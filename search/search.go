@@ -21,6 +21,13 @@ func NewFileHits() *FileHits {
 	return new(FileHits)
 }
 
+// append with mutex
+func (f *FileHits) Append(path string) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.Files = append(f.Files, path)
+}
+
 // TODO
 func SearchDocx(file string, str string) (bool, error) {
 	r, err := zip.OpenReader(file)
@@ -81,9 +88,7 @@ func Run(Args []string) *FileHits {
 
 			if ok, err := SearchDocx(startingDir+"\\"+entry.Name(), searchStr); ok && err == nil {
 
-				filePaths.mu.Lock()
-				filePaths.Files = append(filePaths.Files, currPath)
-				filePaths.mu.Unlock()
+				filePaths.Append(currPath)
 
 			} else {
 
@@ -94,9 +99,7 @@ func Run(Args []string) *FileHits {
 
 			if ok, err := SearchTxt(startingDir+"\\"+entry.Name(), searchStr); ok && err == nil {
 
-				filePaths.mu.Lock()
-				filePaths.Files = append(filePaths.Files, currPath)
-				filePaths.mu.Unlock()
+				filePaths.Append(currPath)
 
 			} else {
 
