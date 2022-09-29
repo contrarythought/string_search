@@ -129,6 +129,7 @@ func Run(Args []string) *FileHits {
 			if ok, err := SearchDocx(startingDir+"\\"+entry.Name(), searchStr); ok && err == nil {
 
 				filePaths.Append(currPath)
+				fmt.Println("Adding:", currPath)
 
 			} else {
 
@@ -140,6 +141,7 @@ func Run(Args []string) *FileHits {
 			if ok, err := SearchTxt(startingDir+"\\"+entry.Name(), searchStr); ok && err == nil {
 
 				filePaths.Append(currPath)
+				fmt.Println("Adding:", currPath)
 
 			} else {
 
@@ -166,6 +168,7 @@ func SearchDir(dir string, str string, files *FileHits, wg *sync.WaitGroup) {
 			if ok, err := SearchDocx(path, str); ok && err == nil {
 
 				files.Append(path)
+				fmt.Println("Adding:", path)
 
 			}
 
@@ -174,6 +177,7 @@ func SearchDir(dir string, str string, files *FileHits, wg *sync.WaitGroup) {
 			if ok, err := SearchTxt(path, str); ok && err == nil {
 
 				files.Append(path)
+				fmt.Println("Adding:", path)
 
 			}
 
