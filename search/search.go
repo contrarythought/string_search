@@ -57,10 +57,25 @@ func SearchTxt(file string, str string) (bool, error) {
 	return false, nil
 }
 
+func GrabStartDir(dir string) string {
+
+	dir_size := len(dir)
+	var ret_buf []byte
+
+	if dir[dir_size-1] == '\\' || dir[dir_size-1] == '/' {
+
+		copy(ret_buf, dir[:dir_size])
+		return string(ret_buf)
+
+	}
+
+	return dir
+}
+
 func Run(Args []string) *FileHits {
 
-	startingDir := Args[1]
-	searchStr := Args[2]
+	startingDir := GrabStartDir(Args[0])
+	searchStr := Args[1]
 
 	// need to do checking to see if startingDir ends with a '\'
 	dirEntries, err := os.ReadDir(startingDir + "\\")
