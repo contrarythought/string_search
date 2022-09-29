@@ -140,9 +140,7 @@ func SearchDir(dir string, str string, files *FileHits, wg *sync.WaitGroup) {
 
 			if ok, err := SearchDocx(path, str); ok && err == nil {
 
-				files.mu.Lock()
-				files.Files = append(files.Files, path)
-				files.mu.Unlock()
+				files.Append(path)
 
 			}
 
@@ -150,9 +148,7 @@ func SearchDir(dir string, str string, files *FileHits, wg *sync.WaitGroup) {
 
 			if ok, err := SearchTxt(path, str); ok && err == nil {
 
-				files.mu.Lock()
-				files.Files = append(files.Files, path)
-				files.mu.Unlock()
+				files.Append(path)
 
 			}
 
