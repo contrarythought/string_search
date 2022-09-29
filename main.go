@@ -18,5 +18,9 @@ func main() {
 
 	files := search.Run(os.Args[1:])
 
-	fmt.Println(files.Files)
+	if len(files.Files) > 0 {
+		fmt.Println(files.Files)
+	} else {
+		fmt.Println("Failed to find files that contain:", os.Args[2])
+	}
 }
