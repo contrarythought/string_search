@@ -28,22 +28,46 @@ func (f *FileHits) Append(path string) {
 	f.Files = append(f.Files, path)
 }
 
-// TODO
+// TODO - parse xml properly
 func SearchDocx(file string, str string) (bool, error) {
-	r, err := zip.OpenReader(file)
+
+	f, err := zip.OpenReader(file)
 	if err != nil {
 		return false, err
 	}
-	defer r.Close()
+	defer f.Close()
+
+	for _, file := range f.File {
+
+		if strings.Compare(file.Name, "word/document.xml") == 0 {
+
+			r, err := file.Open()
+			if err != nil {
+				return false, err
+			}
+
+			buf, err := io.ReadAll(r)
+			if err != nil {
+				return false, err
+			}
+
+			if strings.Contains(string(buf), str) {
+				return true, nil
+			}
+		}
+	}
+
 	return false, nil
 }
 
 // return file path that is to be appended FileHits
 func SearchTxt(file string, str string) (bool, error) {
+
 	f, err := os.Open(file)
 	if err != nil {
 		return false, err
 	}
+	defer f.Close()
 
 	wordbuf, err := io.ReadAll(f)
 	if err != nil {
@@ -57,7 +81,6 @@ func SearchTxt(file string, str string) (bool, error) {
 	return false, nil
 }
 
-// TODO - fix code in if bracket
 func GrabStartDir(dir string) string {
 
 	dir_size := len(dir)
